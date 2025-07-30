@@ -195,9 +195,9 @@ const addEntry = async (req, res) => {
       });
     }
 
-    // Get current date in DD/MM/YYYY format
+    // Get current date in ISO format for MongoDB
     const today = new Date();
-    const date = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+    const date = today.toISOString();
 
     // Generate transaction ID
     const ti = `${Date.now()}:`;
@@ -380,7 +380,7 @@ const updateMondayFinal = async (req, res) => {
       // Calculate settlement data
       const summary = calculateSummary(selectedEntries);
       const today = new Date();
-      const date = `${today.getDate().toString().padStart(2, '0')}/${(today.getMonth() + 1).toString().padStart(2, '0')}/${today.getFullYear()}`;
+      const date = today.toISOString();
 
       // Create Monday Final settlement entry
       const settlementEntry = new LedgerEntry({
