@@ -40,7 +40,7 @@ const calculateBalance = (entries) => {
       runningBalance -= entry.debit;
     }
     return {
-      ...entry.toObject(),
+      ...entry,
       balance: runningBalance
     };
   });
@@ -135,7 +135,7 @@ const getAllParties = async (req, res) => {
         const lastEntry = await LedgerEntry.findOne({
           partyName: party.partyName,
           userId,
-          tnsType: 'Monday S...'
+          tnsType: 'Monday Settlement'
         }).sort({ date: -1 });
 
         return {
@@ -182,7 +182,7 @@ const getPartyLedger = async (req, res) => {
 
     // Get old records (entries before last Monday Final)
     const lastMondayFinal = entries
-      .filter(entry => entry.tnsType === 'Monday S...')
+      .filter(entry => entry.tnsType === 'Monday Settlement')
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
     const oldRecords = lastMondayFinal 
