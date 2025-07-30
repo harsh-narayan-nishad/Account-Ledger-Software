@@ -136,10 +136,30 @@ const fixOldMondayFinalEntries = async (userId) => {
 
     const updatedEntries = await Promise.all(updatePromises);
     
+    // Also find and delete Monday Final entries with empty credit and debit
+    const emptyEntries = await LedgerEntry.find({
+      userId,
+      tnsType: 'Monday Settlement',
+      credit: 0,
+      debit: 0
+    });
+
+    console.log(`Found ${emptyEntries.length} empty Monday Final entries to delete`);
+
+    if (emptyEntries.length > 0) {
+      await LedgerEntry.deleteMany({
+        userId,
+        tnsType: 'Monday Settlement',
+        credit: 0,
+        debit: 0
+      });
+    }
+    
     return {
       success: true,
-      message: `Fixed ${updatedEntries.length} old Monday Final entries`,
-      fixedCount: updatedEntries.length
+      message: `Fixed ${updatedEntries.length} old Monday Final entries and deleted ${emptyEntries.length} empty entries`,
+      fixedCount: updatedEntries.length,
+      deletedCount: emptyEntries.length
     };
   } catch (error) {
     console.error('Fix old Monday Final entries error:', error);
@@ -612,13 +632,23 @@ const updateMondayFinal = async (req, res) => {
 
       // Create Monday Final settlement entry
       // Monday Final should offset the previous transactions
+      const creditAmount = summary.calculatedBalance < 0 ? Math.abs(summary.calculatedBalance) : 0;
+      const debitAmount = summary.calculatedBalance > 0 ? summary.calculatedBalance : 0;
+      
+      console.log('Monday Final settlement calculation:', {
+        calculatedBalance: summary.calculatedBalance,
+        creditAmount,
+        debitAmount,
+        entriesToSettle: entriesToSettle.length
+      });
+
       const settlementEntry = new LedgerEntry({
         partyName,
         date,
         remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled`,
         tnsType: 'Monday Settlement',
-        credit: summary.calculatedBalance < 0 ? Math.abs(summary.calculatedBalance) : 0, // Credit to offset negative balance
-        debit: summary.calculatedBalance > 0 ? summary.calculatedBalance : 0, // Debit to offset positive balance
+        credit: creditAmount, // Credit to offset negative balance
+        debit: debitAmount, // Debit to offset positive balance
         balance: 0, // Balance should be 0 after settlement
         chk: false,
         ti: `${Date.now()}:`,
