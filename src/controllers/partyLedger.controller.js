@@ -469,20 +469,35 @@ const updateMondayFinal = async (req, res) => {
         userId 
       }).sort({ date: 1, createdAt: 1 });
 
-      // Get selected entries (checked ones)
-      const selectedEntries = entries.filter(entry => entry.chk);
+      // Find the last Monday Final settlement
+      const lastMondayFinal = entries
+        .filter(entry => entry.tnsType === 'Monday Settlement')
+        .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+      // Get entries to settle (from last Monday Final to current, excluding Monday Final entries)
+      let entriesToSettle = [];
+      if (lastMondayFinal) {
+        // Get entries after the last Monday Final
+        entriesToSettle = entries.filter(entry => 
+          new Date(entry.date) > new Date(lastMondayFinal.date) && 
+          entry.tnsType !== 'Monday Settlement'
+        );
+      } else {
+        // If no previous Monday Final, settle all non-Monday Final entries
+        entriesToSettle = entries.filter(entry => entry.tnsType !== 'Monday Settlement');
+      }
       
-      if (selectedEntries.length === 0) {
+      if (entriesToSettle.length === 0) {
         results.push({
           partyName,
           success: false,
-          message: 'No entries selected for settlement'
+          message: 'No new entries to settle since last Monday Final'
         });
         continue;
       }
 
-      // Calculate settlement data
-      const summary = calculateSummary(selectedEntries);
+      // Calculate settlement data for all entries to settle
+      const summary = calculateSummary(entriesToSettle);
       const today = new Date();
       const date = today.toISOString();
 
@@ -490,8 +505,8 @@ const updateMondayFinal = async (req, res) => {
       const settlementEntry = new LedgerEntry({
         partyName,
         date,
-        remarks: `Monday Final ${date} - ${selectedEntries.length} entries`,
-        tnsType: 'Monday S...',
+        remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled`,
+        tnsType: 'Monday Settlement',
         credit: summary.totalCredit,
         debit: summary.totalDebit,
         balance: summary.calculatedBalance,
@@ -502,19 +517,14 @@ const updateMondayFinal = async (req, res) => {
 
       await settlementEntry.save();
 
-      // Uncheck all selected entries
-      await LedgerEntry.updateMany(
-        { _id: { $in: selectedEntries.map(e => e._id) } },
-        { chk: false }
-      );
-
       results.push({
         partyName,
         success: true,
         message: 'Monday Final settlement completed',
         data: {
           settlementEntry,
-          summary
+          summary,
+          entriesSettled: entriesToSettle.length
         }
       });
     }
