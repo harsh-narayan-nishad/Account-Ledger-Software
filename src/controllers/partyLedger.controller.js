@@ -155,10 +155,10 @@ const addEntry = async (req, res) => {
     const { partyName, amount, remarks, tnsType } = req.body;
 
     // Validation
-    if (!partyName || !amount || !remarks) {
+    if (!partyName || !amount) {
       return res.status(400).json({
         success: false,
-        message: 'Party name, amount, and remarks are required'
+        message: 'Party name and amount are required'
       });
     }
 
@@ -205,7 +205,7 @@ const addEntry = async (req, res) => {
     const newEntry = new LedgerEntry({
       partyName,
       date,
-      remarks,
+      remarks: remarks || '', // Default to empty string if remarks is not provided
       tnsType,
       credit,
       debit,
