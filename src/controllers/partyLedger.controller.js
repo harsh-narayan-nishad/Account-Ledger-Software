@@ -334,7 +334,7 @@ const updateEntry = async (req, res) => {
   try {
     const { id } = req.params;
     const userId = req.user.id;
-    const { remarks, amount, tnsType } = req.body;
+    const { remarks, amount, tnsType, credit, debit } = req.body;
 
     const entry = await LedgerEntry.findOne({ _id: id, userId });
     if (!entry) {
@@ -346,7 +346,26 @@ const updateEntry = async (req, res) => {
 
     // Update fields
     if (remarks !== undefined) entry.remarks = remarks;
-    if (amount !== undefined) {
+    
+    // Handle both old format (amount + tnsType) and new format (credit + debit)
+    if (credit !== undefined && debit !== undefined) {
+      // New format: frontend sends credit and debit directly
+      entry.credit = parseFloat(credit) || 0;
+      entry.debit = parseFloat(debit) || 0;
+      
+      // Determine transaction type based on which field has value
+      if (entry.credit > 0 && entry.debit === 0) {
+        entry.tnsType = 'CR';
+      } else if (entry.debit > 0 && entry.credit === 0) {
+        entry.tnsType = 'DR';
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Either credit or debit must be provided, not both'
+        });
+      }
+    } else if (amount !== undefined && tnsType !== undefined) {
+      // Old format: calculate credit/debit from amount and type
       if (tnsType === 'CR') {
         entry.credit = parseFloat(amount);
         entry.debit = 0;
@@ -354,8 +373,8 @@ const updateEntry = async (req, res) => {
         entry.debit = parseFloat(amount);
         entry.credit = 0;
       }
+      entry.tnsType = tnsType;
     }
-    if (tnsType !== undefined) entry.tnsType = tnsType;
 
     await entry.save();
 
