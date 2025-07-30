@@ -162,12 +162,12 @@ const addEntry = async (req, res) => {
       });
     }
 
-    // Validate amount is positive
+    // Validate amount is not zero
     const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+    if (isNaN(parsedAmount) || parsedAmount === 0) {
       return res.status(400).json({
         success: false,
-        message: 'Amount must be a positive number'
+        message: 'Amount cannot be zero'
       });
     }
 
