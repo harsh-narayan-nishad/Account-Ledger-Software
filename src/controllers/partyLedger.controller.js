@@ -162,6 +162,15 @@ const addEntry = async (req, res) => {
       });
     }
 
+    // Validate amount is positive
+    const parsedAmount = parseFloat(amount);
+    if (isNaN(parsedAmount) || parsedAmount <= 0) {
+      return res.status(400).json({
+        success: false,
+        message: 'Amount must be a positive number'
+      });
+    }
+
     // Check if party exists
     const party = await NewParty.findOne({ partyName, userId });
     if (!party) {
@@ -176,9 +185,14 @@ const addEntry = async (req, res) => {
     let debit = 0;
     
     if (tnsType === 'CR') {
-      credit = parseFloat(amount);
+      credit = parsedAmount;
     } else if (tnsType === 'DR') {
-      debit = parseFloat(amount);
+      debit = parsedAmount;
+    } else {
+      return res.status(400).json({
+        success: false,
+        message: 'Transaction type must be CR or DR'
+      });
     }
 
     // Get current date in DD/MM/YYYY format
