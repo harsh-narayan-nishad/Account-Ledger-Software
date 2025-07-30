@@ -1,3 +1,21 @@
+/**
+ * New Party Model
+ * 
+ * Defines the NewParty schema for storing party/customer information
+ * in the Account Ledger Software.
+ * 
+ * Features:
+ * - Party name and contact information
+ * - SR number generation and validation
+ * - Status tracking (Active/Inactive)
+ * - User association for data isolation
+ * - Creation and update timestamps
+ * - Search and filtering capabilities
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const mongoose = require('mongoose');
 
 const selfLDSchema = new mongoose.Schema({

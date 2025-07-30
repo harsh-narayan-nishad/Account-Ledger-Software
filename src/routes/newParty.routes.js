@@ -1,3 +1,21 @@
+/**
+ * New Party Routes
+ * 
+ * Defines API endpoints for party management and CRUD operations
+ * in the Account Ledger Software.
+ * 
+ * Endpoints:
+ * - GET / - Get all parties
+ * - GET /:id - Get specific party by ID
+ * - POST / - Create new party
+ * - PUT /:id - Update party information
+ * - DELETE /:id - Delete party
+ * - GET /next-sr-no - Get next SR number
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middlewares/auth');

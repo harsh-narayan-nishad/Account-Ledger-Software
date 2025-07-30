@@ -1,3 +1,20 @@
+/**
+ * User Model
+ * 
+ * Defines the User schema for the Account Ledger Software.
+ * Handles user authentication, profile management, and data validation.
+ * 
+ * Features:
+ * - Password hashing with bcrypt
+ * - Email validation and uniqueness
+ * - Profile information storage
+ * - Authentication token management
+ * - Account creation and update timestamps
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 

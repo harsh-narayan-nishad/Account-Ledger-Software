@@ -1,3 +1,20 @@
+/**
+ * User Settings Model
+ * 
+ * Defines the UserSettings schema for storing user preferences
+ * and configuration in the Account Ledger Software.
+ * 
+ * Features:
+ * - User preference storage
+ * - Application settings management
+ * - Theme and display options
+ * - Notification preferences
+ * - Data export settings
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const mongoose = require('mongoose');
 
 const userSettingsSchema = new mongoose.Schema({

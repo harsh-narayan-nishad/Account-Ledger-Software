@@ -1,3 +1,20 @@
+/**
+ * Authentication Middleware
+ * 
+ * Provides JWT token verification and user authentication middleware
+ * for the Account Ledger Software backend.
+ * 
+ * Features:
+ * - JWT token verification
+ * - User authentication check
+ * - Request authorization
+ * - Error handling for invalid tokens
+ * - User context injection
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
 

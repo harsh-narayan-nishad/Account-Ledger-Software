@@ -1,3 +1,20 @@
+/**
+ * Database Configuration
+ * 
+ * Configures MongoDB connection for the Account Ledger Software backend.
+ * Handles database connection, error handling, and connection events.
+ * 
+ * Features:
+ * - MongoDB connection setup
+ * - Connection event handling
+ * - Error logging and monitoring
+ * - Connection retry logic
+ * - Environment-based configuration
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const mongoose = require('mongoose');
 
 const connectDB = async () => {

@@ -1,7 +1,36 @@
+/**
+ * Party Ledger Controller
+ * 
+ * Handles all party ledger operations including:
+ * - Adding, updating, and deleting ledger entries
+ * - Calculating running balances and summaries
+ * - Monday Final settlement processing
+ * - Party management and cleanup
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
+// Import required models
 const LedgerEntry = require('../models/LedgerEntry');
 const NewParty = require('../models/NewParty');
 
-// Enhanced business logic functions
+/**
+ * Enhanced Business Logic Functions
+ * 
+ * These functions handle core business calculations for the ledger system.
+ * They are optimized for performance and accuracy.
+ */
+
+/**
+ * Calculate Running Balance for Ledger Entries
+ * 
+ * Processes an array of ledger entries and calculates the running balance
+ * for each entry based on credit and debit amounts.
+ * 
+ * @param {Array} entries - Array of ledger entry objects
+ * @returns {Array} - Array of entries with calculated running balances
+ */
 const calculateBalance = (entries) => {
   let runningBalance = 0;
   return entries.map(entry => {
@@ -17,6 +46,15 @@ const calculateBalance = (entries) => {
   });
 };
 
+/**
+ * Calculate Summary Statistics for Ledger Entries
+ * 
+ * Calculates total credit, debit, and balance for a set of ledger entries.
+ * Used for generating summary reports and Monday Final settlements.
+ * 
+ * @param {Array} entries - Array of ledger entry objects
+ * @returns {Object} - Summary object with totals and entry count
+ */
 const calculateSummary = (entries) => {
   const totalCredit = entries
     .filter(entry => entry.tnsType === 'CR')
@@ -34,6 +72,16 @@ const calculateSummary = (entries) => {
   };
 };
 
+/**
+ * Generate Monday Final Settlement Data
+ * 
+ * Creates settlement data for Monday Final processing.
+ * Calculates transaction counts and balances for selected entries.
+ * 
+ * @param {Array} entries - Array of ledger entry objects
+ * @param {number} startingBalance - Starting balance for calculations
+ * @returns {Object} - Monday Final data with transaction details
+ */
 const generateMondayFinalData = (entries, startingBalance = 0) => {
   const selectedEntries = entries.filter(entry => entry.chk);
   const summary = calculateSummary(selectedEntries);
@@ -47,7 +95,17 @@ const generateMondayFinalData = (entries, startingBalance = 0) => {
   };
 };
 
-// Get all parties for ledger view
+/**
+ * Get All Parties for Ledger View
+ * 
+ * Retrieves all parties for the current user with optional filtering.
+ * Supports search by party name or SR number, and status filtering.
+ * Includes Monday Final status for each party.
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ * @returns {Object} - JSON response with parties data
+ */
 const getAllParties = async (req, res) => {
   try {
     const userId = req.user.id;

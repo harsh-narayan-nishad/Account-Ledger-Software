@@ -1,3 +1,22 @@
+/**
+ * Party Ledger Routes
+ * 
+ * Defines API endpoints for party ledger management and transactions
+ * in the Account Ledger Software.
+ * 
+ * Endpoints:
+ * - GET /parties - Get all parties for ledger view
+ * - GET /:partyName - Get ledger entries for specific party
+ * - POST /entry - Add new ledger entry
+ * - PUT /entry/:id - Update ledger entry
+ * - DELETE /entry/:id - Delete ledger entry
+ * - PUT /monday-final - Process Monday Final settlement
+ * - DELETE /parties - Delete multiple parties
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const express = require('express');
 const router = express.Router();
 const { authenticateToken } = require('../middlewares/auth');

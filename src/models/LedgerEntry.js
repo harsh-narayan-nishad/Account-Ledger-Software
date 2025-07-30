@@ -1,3 +1,21 @@
+/**
+ * Ledger Entry Model
+ * 
+ * Defines the LedgerEntry schema for storing transaction records
+ * in the Account Ledger Software.
+ * 
+ * Features:
+ * - Transaction type validation (CR/DR)
+ * - Automatic balance calculation
+ * - Date and time tracking
+ * - User association
+ * - Checkbox selection for batch operations
+ * - Monday Final settlement support
+ * 
+ * @author Account Ledger Team
+ * @version 1.0.0
+ */
+
 const mongoose = require('mongoose');
 
 const ledgerEntrySchema = new mongoose.Schema({
