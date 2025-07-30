@@ -516,14 +516,15 @@ const updateMondayFinal = async (req, res) => {
       const date = today.toISOString();
 
       // Create Monday Final settlement entry
+      // Monday Final should offset the previous transactions
       const settlementEntry = new LedgerEntry({
         partyName,
         date,
         remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled`,
         tnsType: 'Monday Settlement',
-        credit: summary.totalCredit,
-        debit: summary.totalDebit,
-        balance: summary.calculatedBalance,
+        credit: 0, // Monday Final doesn't add credit
+        debit: summary.calculatedBalance > 0 ? summary.calculatedBalance : 0, // Debit to offset positive balance
+        balance: 0, // Balance should be 0 after settlement
         chk: false,
         ti: `${Date.now()}:`,
         userId
