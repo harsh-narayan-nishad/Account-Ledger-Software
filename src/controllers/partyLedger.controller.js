@@ -631,10 +631,10 @@ const updateMondayFinal = async (req, res) => {
       const date = today.toISOString();
 
       // Create Monday Final settlement entry
-      // Monday Final should show the actual settlement amount (what needs to be paid/received)
+      // Monday Final should show what WE need to pay or receive to settle
       const settlementAmount = Math.abs(summary.calculatedBalance);
-      const isCredit = summary.calculatedBalance < 0; // Negative balance means we owe them (Credit)
-      const isDebit = summary.calculatedBalance > 0;  // Positive balance means they owe us (Debit)
+      const isCredit = summary.calculatedBalance > 0; // Positive balance means we need to pay (Credit)
+      const isDebit = summary.calculatedBalance < 0;  // Negative balance means we need to receive (Debit)
       
       console.log('Monday Final settlement calculation:', {
         calculatedBalance: summary.calculatedBalance,
@@ -650,8 +650,8 @@ const updateMondayFinal = async (req, res) => {
         remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled - ${isCredit ? 'To Pay' : 'To Receive'} ₹${settlementAmount}`,
         tnsType: 'Monday Settlement',
         credit: isCredit ? settlementAmount : 0, // Credit if we need to pay them
-        debit: isDebit ? settlementAmount : 0,  // Debit if they need to pay us
-        balance: summary.calculatedBalance, // Show actual balance (not 0)
+        debit: isDebit ? settlementAmount : 0,  // Debit if we need to receive from them
+        balance: summary.calculatedBalance, // Show actual balance
         chk: false,
         ti: `${Date.now()}:`,
         userId
