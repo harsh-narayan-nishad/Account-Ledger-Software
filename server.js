@@ -45,25 +45,44 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 /**
+ * CORS (Cross-Origin Resource Sharing) Configuration
+ * 
+ * Enables cross-origin requests from the frontend application.
+ * Configures allowed origins, methods, and headers for security.
+ * Must be applied before Helmet to ensure proper header handling.
+ */
+app.use(cors({
+  origin: [
+    'https://property-flow-design.vercel.app',
+    'http://localhost:3000',
+    'http://localhost:5173',
+    'http://127.0.0.1:3000',
+    'http://127.0.0.1:5173'
+  ],
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+  optionsSuccessStatus: 200
+}));
+
+/**
  * Security Middleware Configuration
  * 
  * Helmet provides various HTTP headers to help protect the app
  * from well-known web vulnerabilities.
  */
-app.use(helmet());
+app.use(helmet({
+  crossOriginResourcePolicy: { policy: "cross-origin" },
+  crossOriginEmbedderPolicy: false
+}));
 
 /**
- * CORS (Cross-Origin Resource Sharing) Configuration
+ * Preflight Request Handler
  * 
- * Enables cross-origin requests from the frontend application.
- * Configures allowed origins, methods, and headers for security.
+ * Handles OPTIONS requests for CORS preflight checks.
+ * Ensures proper CORS headers are sent for all preflight requests.
  */
-app.use(cors({
-  origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://property-flow-design.vercel.app',
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.options('*', cors());
 
 /**
  * Compression Middleware Configuration
