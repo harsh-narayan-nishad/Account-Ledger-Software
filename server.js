@@ -24,7 +24,7 @@ app.use(helmet());
 
 // CORS configuration
 app.use(cors({
-  origin: process.env.CORS_ORIGIN || 'https://account-ledger-software.onrender.com',
+  origin: process.env.CORS_ORIGIN || process.env.FRONTEND_URL || 'https://property-flow-design.vercel.app',
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization']
