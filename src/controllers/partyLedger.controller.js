@@ -522,7 +522,7 @@ const updateMondayFinal = async (req, res) => {
         date,
         remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled`,
         tnsType: 'Monday Settlement',
-        credit: 0, // Monday Final doesn't add credit
+        credit: summary.calculatedBalance < 0 ? Math.abs(summary.calculatedBalance) : 0, // Credit to offset negative balance
         debit: summary.calculatedBalance > 0 ? summary.calculatedBalance : 0, // Debit to offset positive balance
         balance: 0, // Balance should be 0 after settlement
         chk: false,
