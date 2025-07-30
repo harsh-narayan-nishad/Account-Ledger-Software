@@ -31,9 +31,10 @@ const ledgerEntrySchema = new mongoose.Schema({
   },
   remarks: {
     type: String,
-    required: [true, 'Remarks are required'],
+    required: false,
     trim: true,
-    maxlength: [500, 'Remarks cannot exceed 500 characters']
+    maxlength: [500, 'Remarks cannot exceed 500 characters'],
+    default: ''
   },
   tnsType: {
     type: String,

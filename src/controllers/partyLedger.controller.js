@@ -213,22 +213,13 @@ const getPartyLedger = async (req, res) => {
 const addEntry = async (req, res) => {
   try {
     const userId = req.user.id;
-    const { partyName, amount, remarks, tnsType } = req.body;
+    const { partyName, amount, remarks, tnsType, credit, debit } = req.body;
 
     // Validation
-    if (!partyName || !amount) {
+    if (!partyName || (!amount && !credit && !debit)) {
       return res.status(400).json({
         success: false,
         message: 'Party name and amount are required'
-      });
-    }
-
-    // Validate amount is not zero
-    const parsedAmount = parseFloat(amount);
-    if (isNaN(parsedAmount) || parsedAmount === 0) {
-      return res.status(400).json({
-        success: false,
-        message: 'Amount cannot be zero'
       });
     }
 
@@ -241,18 +232,51 @@ const addEntry = async (req, res) => {
       });
     }
 
-    // Calculate credit/debit based on transaction type
-    let credit = 0;
-    let debit = 0;
-    
-    if (tnsType === 'CR') {
-      credit = parsedAmount;
-    } else if (tnsType === 'DR') {
-      debit = parsedAmount;
+    // Handle both old format (amount + tnsType) and new format (credit + debit)
+    let finalCredit = 0;
+    let finalDebit = 0;
+    let finalTnsType = tnsType;
+
+    if (credit !== undefined && debit !== undefined) {
+      // New format: frontend sends credit and debit directly
+      finalCredit = parseFloat(credit) || 0;
+      finalDebit = parseFloat(debit) || 0;
+      
+      // Determine transaction type based on which field has value
+      if (finalCredit > 0 && finalDebit === 0) {
+        finalTnsType = 'CR';
+      } else if (finalDebit > 0 && finalCredit === 0) {
+        finalTnsType = 'DR';
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Either credit or debit must be provided, not both'
+        });
+      }
+    } else if (amount && tnsType) {
+      // Old format: calculate credit/debit from amount and type
+      const parsedAmount = parseFloat(amount);
+      if (isNaN(parsedAmount) || parsedAmount === 0) {
+        return res.status(400).json({
+          success: false,
+          message: 'Amount cannot be zero'
+        });
+      }
+      
+      if (tnsType === 'CR') {
+        finalCredit = parsedAmount;
+      } else if (tnsType === 'DR') {
+        finalDebit = parsedAmount;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Transaction type must be CR or DR'
+        });
+      }
     } else {
       return res.status(400).json({
         success: false,
-        message: 'Transaction type must be CR or DR'
+        message: 'Invalid data format'
       });
     }
 
@@ -267,9 +291,9 @@ const addEntry = async (req, res) => {
       partyName,
       date,
       remarks: remarks || '', // Default to empty string if remarks is not provided
-      tnsType,
-      credit,
-      debit,
+      tnsType: finalTnsType,
+      credit: finalCredit,
+      debit: finalDebit,
       balance: 0, // Will be calculated by frontend
       chk: false,
       ti,
