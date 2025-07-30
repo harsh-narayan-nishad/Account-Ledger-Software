@@ -99,6 +99,59 @@ const generateMondayFinalData = (entries, startingBalance = 0) => {
 };
 
 /**
+ * Fix Old Monday Final Entries in Database
+ * 
+ * Updates old Monday Final entries in the database to use correct logic.
+ * This function can be called to fix historical data.
+ * 
+ * @param {string} userId - User ID to fix entries for
+ * @returns {Promise<Object>} - Result of the fix operation
+ */
+const fixOldMondayFinalEntries = async (userId) => {
+  try {
+    // Find all old Monday Final entries with wrong logic
+    const oldEntries = await LedgerEntry.find({
+      userId,
+      tnsType: 'Monday Settlement',
+      credit: { $gt: 0 },
+      debit: 0
+    });
+
+    console.log(`Found ${oldEntries.length} old Monday Final entries to fix`);
+
+    // Update each entry to use correct logic
+    const updatePromises = oldEntries.map(async (entry) => {
+      return await LedgerEntry.findByIdAndUpdate(
+        entry._id,
+        {
+          $set: {
+            credit: 0,
+            debit: entry.credit, // Move credit to debit
+            balance: 0
+          }
+        },
+        { new: true }
+      );
+    });
+
+    const updatedEntries = await Promise.all(updatePromises);
+    
+    return {
+      success: true,
+      message: `Fixed ${updatedEntries.length} old Monday Final entries`,
+      fixedCount: updatedEntries.length
+    };
+  } catch (error) {
+    console.error('Fix old Monday Final entries error:', error);
+    return {
+      success: false,
+      message: 'Failed to fix old Monday Final entries',
+      error: error.message
+    };
+  }
+};
+
+/**
  * Get All Parties for Ledger View
  * 
  * Retrieves all parties for the current user with optional filtering.
@@ -170,6 +223,9 @@ const getPartyLedger = async (req, res) => {
     const { partyName } = req.params;
     const userId = req.user.id;
 
+    // Fix old Monday Final entries in database for this user
+    await fixOldMondayFinalEntries(userId);
+
     // Get all entries for this party and user with optimized query
     const entries = await LedgerEntry.find({ 
       partyName: decodeURIComponent(partyName), 
@@ -225,12 +281,29 @@ const getPartyLedger = async (req, res) => {
       return entry;
     });
 
+    // Fix old records as well to show correct logic
+    const fixedOldRecords = oldRecords.map(entry => {
+      if (entry.tnsType === 'Monday Settlement') {
+        // Check if this is an old entry with wrong logic
+        if (entry.credit > 0 && entry.debit === 0) {
+          // This is an old Monday Final with wrong logic, fix it
+          return {
+            ...entry,
+            credit: 0,
+            debit: entry.credit, // Move credit to debit
+            balance: 0
+          };
+        }
+      }
+      return entry;
+    });
+
     res.json({
       success: true,
       message: 'Ledger retrieved successfully',
       data: {
         ledgerEntries: fixedProcessedEntries,
-        oldRecords: calculateBalance(oldRecords),
+        oldRecords: calculateBalance(fixedOldRecords),
         closingBalance: summary.calculatedBalance,
         summary,
         mondayFinalData: generateMondayFinalData(fixedProcessedEntries, summary.calculatedBalance)
@@ -629,5 +702,6 @@ module.exports = {
   updateEntry,
   deleteEntry,
   updateMondayFinal,
-  deleteParties
+  deleteParties,
+  fixOldMondayFinalEntries
 }; 
