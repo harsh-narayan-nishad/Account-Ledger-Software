@@ -176,15 +176,29 @@ const getPartyLedger = async (req, res) => {
     .sort({ date: 1, createdAt: 1 })
     .lean(); // Use lean() for better performance
 
-    // Calculate running balance
-    const processedEntries = calculateBalance(entries);
-    const summary = calculateSummary(entries);
-
-    // Get old records (entries before last Monday Final)
+    // Find the last Monday Final settlement
     const lastMondayFinal = entries
       .filter(entry => entry.tnsType === 'Monday Settlement')
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
 
+    // Get entries to show in the ledger
+    let ledgerEntries = [];
+    if (lastMondayFinal) {
+      // Show only the last Monday Final and transactions after it
+      ledgerEntries = entries.filter(entry => 
+        entry._id.toString() === lastMondayFinal._id.toString() ||
+        new Date(entry.date) > new Date(lastMondayFinal.date)
+      );
+    } else {
+      // If no Monday Final exists, show all entries
+      ledgerEntries = entries;
+    }
+
+    // Calculate running balance for visible entries
+    const processedEntries = calculateBalance(ledgerEntries);
+    const summary = calculateSummary(ledgerEntries);
+
+    // Get old records (entries before last Monday Final) for reference
     const oldRecords = lastMondayFinal 
       ? entries.filter(entry => new Date(entry.date) < new Date(lastMondayFinal.date))
       : [];
