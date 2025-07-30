@@ -38,6 +38,9 @@ const calculateBalance = (entries) => {
       runningBalance += entry.credit;
     } else if (entry.tnsType === 'DR') {
       runningBalance -= entry.debit;
+    } else if (entry.tnsType === 'Monday Settlement') {
+      // Monday Final should reset balance to 0
+      runningBalance = 0;
     }
     return {
       ...entry,
@@ -196,22 +199,41 @@ const getPartyLedger = async (req, res) => {
 
     // Calculate running balance for visible entries
     const processedEntries = calculateBalance(ledgerEntries);
-    const summary = calculateSummary(ledgerEntries);
+    
+    // Recalculate summary after fixing Monday Final entries
+    const summary = calculateSummary(processedEntries);
 
     // Get old records (entries before last Monday Final) for reference
     const oldRecords = lastMondayFinal 
       ? entries.filter(entry => new Date(entry.date) < new Date(lastMondayFinal.date))
       : [];
 
+    // Fix old Monday Final entries in the response to show correct logic
+    const fixedProcessedEntries = processedEntries.map(entry => {
+      if (entry.tnsType === 'Monday Settlement') {
+        // Check if this is an old entry with wrong logic
+        if (entry.credit > 0 && entry.debit === 0) {
+          // This is an old Monday Final with wrong logic, fix it
+          return {
+            ...entry,
+            credit: 0,
+            debit: entry.credit, // Move credit to debit
+            balance: 0
+          };
+        }
+      }
+      return entry;
+    });
+
     res.json({
       success: true,
       message: 'Ledger retrieved successfully',
       data: {
-        ledgerEntries: processedEntries,
+        ledgerEntries: fixedProcessedEntries,
         oldRecords: calculateBalance(oldRecords),
         closingBalance: summary.calculatedBalance,
         summary,
-        mondayFinalData: generateMondayFinalData(processedEntries, summary.calculatedBalance)
+        mondayFinalData: generateMondayFinalData(fixedProcessedEntries, summary.calculatedBalance)
       }
     });
   } catch (error) {
