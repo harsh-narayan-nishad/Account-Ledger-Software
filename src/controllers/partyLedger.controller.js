@@ -109,11 +109,14 @@ const getPartyLedger = async (req, res) => {
     const { partyName } = req.params;
     const userId = req.user.id;
 
-    // Get all entries for this party and user
+    // Get all entries for this party and user with optimized query
     const entries = await LedgerEntry.find({ 
       partyName: decodeURIComponent(partyName), 
       userId 
-    }).sort({ date: 1, createdAt: 1 });
+    })
+    .select('partyName date remarks tnsType credit debit balance chk ti userId')
+    .sort({ date: 1, createdAt: 1 })
+    .lean(); // Use lean() for better performance
 
     // Calculate running balance
     const processedEntries = calculateBalance(entries);

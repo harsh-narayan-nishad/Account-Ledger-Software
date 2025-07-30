@@ -30,8 +30,17 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization']
 }));
 
-// Compression middleware
-app.use(compression());
+// Compression middleware with aggressive settings
+app.use(compression({
+  level: 6,
+  threshold: 1024,
+  filter: (req, res) => {
+    if (req.headers['x-no-compression']) {
+      return false;
+    }
+    return compression.filter(req, res);
+  }
+}));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -44,12 +53,22 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
-// Body parsing middleware
-app.use(express.json({ limit: '10mb' }));
-app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+// Body parsing middleware with optimized settings
+app.use(express.json({ 
+  limit: '5mb',
+  strict: true,
+  type: 'application/json'
+}));
+app.use(express.urlencoded({ 
+  extended: true, 
+  limit: '5mb',
+  parameterLimit: 1000
+}));
 
-// Logging middleware
-app.use(morgan('combined'));
+// Optimized logging middleware (only in development)
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('combined'));
+}
 
 // Health check endpoint
 app.get('/health', (req, res) => {
