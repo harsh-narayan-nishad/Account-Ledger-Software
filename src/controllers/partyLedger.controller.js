@@ -39,8 +39,8 @@ const calculateBalance = (entries) => {
     } else if (entry.tnsType === 'DR') {
       runningBalance -= entry.debit;
     } else if (entry.tnsType === 'Monday Settlement') {
-      // Monday Final should reset balance to 0
-      runningBalance = 0;
+      // Monday Final should show the actual settlement balance
+      runningBalance = entry.balance; // Use the balance from the Monday Final entry
     }
     return {
       ...entry,
@@ -631,25 +631,27 @@ const updateMondayFinal = async (req, res) => {
       const date = today.toISOString();
 
       // Create Monday Final settlement entry
-      // Monday Final should offset the previous transactions
-      const creditAmount = summary.calculatedBalance < 0 ? Math.abs(summary.calculatedBalance) : 0;
-      const debitAmount = summary.calculatedBalance > 0 ? summary.calculatedBalance : 0;
+      // Monday Final should show the actual settlement amount (what needs to be paid/received)
+      const settlementAmount = Math.abs(summary.calculatedBalance);
+      const isCredit = summary.calculatedBalance < 0; // Negative balance means we owe them (Credit)
+      const isDebit = summary.calculatedBalance > 0;  // Positive balance means they owe us (Debit)
       
       console.log('Monday Final settlement calculation:', {
         calculatedBalance: summary.calculatedBalance,
-        creditAmount,
-        debitAmount,
+        settlementAmount,
+        isCredit,
+        isDebit,
         entriesToSettle: entriesToSettle.length
       });
 
       const settlementEntry = new LedgerEntry({
         partyName,
         date,
-        remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled`,
+        remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled - ${isCredit ? 'To Pay' : 'To Receive'} ₹${settlementAmount}`,
         tnsType: 'Monday Settlement',
-        credit: creditAmount, // Credit to offset negative balance
-        debit: debitAmount, // Debit to offset positive balance
-        balance: 0, // Balance should be 0 after settlement
+        credit: isCredit ? settlementAmount : 0, // Credit if we need to pay them
+        debit: isDebit ? settlementAmount : 0,  // Debit if they need to pay us
+        balance: summary.calculatedBalance, // Show actual balance (not 0)
         chk: false,
         ti: `${Date.now()}:`,
         userId
