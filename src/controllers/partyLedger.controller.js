@@ -662,6 +662,21 @@ const updateMondayFinal = async (req, res) => {
       const today = new Date();
       const date = today.toISOString();
 
+      console.log('🔍 Entries to settle:', entriesToSettle.map(e => ({
+        date: e.date,
+        tnsType: e.tnsType,
+        credit: e.credit,
+        debit: e.debit,
+        balance: e.balance
+      })));
+
+      console.log('🔍 Summary calculation:', {
+        totalCredit: summary.totalCredit,
+        totalDebit: summary.totalDebit,
+        calculatedBalance: summary.calculatedBalance,
+        totalEntries: summary.totalEntries
+      });
+
       // Create Monday Final settlement entry
       // Monday Final should show what WE need to pay or receive to settle
       const settlementAmount = Math.abs(summary.calculatedBalance);
