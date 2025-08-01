@@ -281,11 +281,17 @@ app.use((err, req, res, next) => {
  * 
  * Starts the Express server on the specified port.
  * Logs server information including port, environment, and health check URL.
+ * Optimized for Render free tier with faster startup.
  */
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
-  console.log(`Environment: ${process.env.NODE_ENV}`);
-  console.log(`Health check: http://localhost:${PORT}/health`);
+  console.log(`🚀 Server running on port ${PORT}`);
+  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
+  console.log(`❤️ Health check: http://localhost:${PORT}/health`);
+  console.log(`⏱️ Startup time: ${process.uptime()}s`);
+  
+  // Log memory usage for monitoring
+  const memUsage = process.memoryUsage();
+  console.log(`💾 Memory usage: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
 });
 
 module.exports = app; 

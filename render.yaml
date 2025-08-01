@@ -18,7 +18,7 @@ services:
     env: node
     plan: free
     buildCommand: npm install
-    startCommand: npm start
+    startCommand: npm run start-with-keepalive
     healthCheckPath: /health
     envVars:
       - key: NODE_ENV
