@@ -35,10 +35,7 @@ const connectDB = async () => {
       minPoolSize: 1, // Minimum connections
       // Fast write concern
       w: 1,
-      j: false,
-      // Disable buffering for faster operations
-      bufferCommands: false,
-      bufferMaxEntries: 0
+      j: false
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
