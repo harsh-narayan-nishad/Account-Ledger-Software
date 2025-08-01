@@ -22,6 +22,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const morgan = require('morgan');
 const rateLimit = require('express-rate-limit');
+const mongoose = require('mongoose');
 require('dotenv').config();
 
 // Database and route imports
@@ -35,6 +36,14 @@ const userSettingsRoutes = require('./src/routes/userSettings.routes');
 // Initialize Express application
 const app = express();
 const PORT = process.env.PORT || 5000;
+
+/**
+ * Mongoose Configuration
+ * 
+ * Configure mongoose settings to prevent deprecation warnings
+ * and optimize for performance.
+ */
+mongoose.set('strictQuery', false);
 
 /**
  * Performance Monitoring Middleware
