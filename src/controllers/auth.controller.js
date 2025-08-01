@@ -84,15 +84,10 @@ const login = async (req, res) => {
       });
     }
 
-    // Update last login without saving the entire document
-    await User.updateOne(
-      { _id: user._id },
-      { lastLogin: new Date() }
-    );
-
     // Generate token
     const token = generateToken(user._id);
 
+    // Simplified response for faster processing
     res.json({
       success: true,
       message: 'Login successful',

@@ -23,19 +23,19 @@ const connectDB = async () => {
     // Use MONGO_URI for Render, fallback to MONGODB_URI
     const mongoUri = process.env.MONGO_URI || process.env.MONGODB_URI;
     
+    // Simplified connection options for better performance
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
       useUnifiedTopology: true,
-      // Modern MongoDB connection options
-      maxPoolSize: 10, // Maximum number of connections in the pool
-      minPoolSize: 2,  // Minimum number of connections in the pool
-      serverSelectionTimeoutMS: 5000, // Timeout for server selection
-      socketTimeoutMS: 45000, // Socket timeout
+      // Minimal connection settings for faster startup
+      serverSelectionTimeoutMS: 3000, // Reduced timeout
+      socketTimeoutMS: 30000, // Reduced socket timeout
+      // Connection pool settings
+      maxPoolSize: 5, // Reduced pool size for free tier
+      minPoolSize: 1, // Minimum connections
       // Write concern for better performance
       w: 1,
-      j: false,
-      // Read preference for better performance
-      readPreference: 'primaryPreferred'
+      j: false
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);

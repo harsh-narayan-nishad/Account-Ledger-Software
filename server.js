@@ -168,8 +168,8 @@ app.use(performanceMonitor);
  * - Filter: Skip compression for specific headers
  */
 app.use(compression({
-  level: 6,
-  threshold: 1024,
+  level: 4, // Reduced compression level for faster processing
+  threshold: 2048, // Increased threshold
   filter: (req, res) => {
     if (req.headers['x-no-compression']) {
       return false;
@@ -188,7 +188,7 @@ app.use(compression({
  */
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
-  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 100, // limit each IP to 100 requests per windowMs
+  max: parseInt(process.env.RATE_LIMIT_MAX_REQUESTS) || 200, // Increased limit for better performance
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.'
@@ -206,14 +206,14 @@ app.use('/api/', limiter);
  * - Parameter limit to prevent abuse
  */
 app.use(express.json({ 
-  limit: '5mb',
+  limit: '2mb', // Reduced limit for faster processing
   strict: true,
   type: 'application/json'
 }));
 app.use(express.urlencoded({ 
   extended: true, 
-  limit: '5mb',
-  parameterLimit: 1000
+  limit: '2mb', // Reduced limit
+  parameterLimit: 500 // Reduced parameter limit
 }));
 
 /**
