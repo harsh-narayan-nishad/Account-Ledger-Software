@@ -117,7 +117,7 @@ app.use(cors({
   exposedHeaders: ['Content-Length', 'X-Requested-With'],
   optionsSuccessStatus: 200,
   preflightContinue: false
-});
+}));
 
 /**
  * Security Middleware Configuration
