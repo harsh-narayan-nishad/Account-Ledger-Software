@@ -117,7 +117,7 @@ app.use(cors({
   exposedHeaders: ['Content-Length', 'X-Requested-With'],
   optionsSuccessStatus: 200,
   preflightContinue: false
-}));
+});
 
 /**
  * Security Middleware Configuration
@@ -127,7 +127,10 @@ app.use(cors({
  */
 app.use(helmet({
   crossOriginResourcePolicy: { policy: "cross-origin" },
-  crossOriginEmbedderPolicy: false
+  crossOriginEmbedderPolicy: false,
+  // Reduced security headers for faster processing
+  contentSecurityPolicy: false,
+  hsts: false
 }));
 
 /**
@@ -171,13 +174,13 @@ app.use(performanceMonitor);
  * 
  * Compresses response bodies for all requests that pass through the middleware.
  * Uses aggressive compression settings for optimal performance:
- * - Level 6: Good balance between compression and speed
- * - Threshold: Only compress responses larger than 1KB
+ * - Level 4: Reduced compression for faster processing
+ * - Threshold: Only compress responses larger than 2KB
  * - Filter: Skip compression for specific headers
  */
 app.use(compression({
-  level: 4, // Reduced compression level for faster processing
-  threshold: 2048, // Increased threshold
+  level: 2, // Further reduced compression level for faster processing
+  threshold: 4096, // Increased threshold
   filter: (req, res) => {
     if (req.headers['x-no-compression']) {
       return false;
