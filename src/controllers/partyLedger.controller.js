@@ -243,6 +243,8 @@ const getPartyLedger = async (req, res) => {
     const { partyName } = req.params;
     const userId = req.user.id;
 
+    console.log('🔄 Getting party ledger for:', partyName, 'userId:', userId);
+
     // Fix old Monday Final entries in database for this user
     await fixOldMondayFinalEntries(userId);
 
@@ -255,10 +257,15 @@ const getPartyLedger = async (req, res) => {
     .sort({ date: 1, createdAt: 1 })
     .lean(); // Use lean() for better performance
 
+    console.log('📊 Total entries found:', entries.length);
+    console.log('📊 Monday Settlement entries:', entries.filter(e => e.tnsType === 'Monday Settlement').length);
+
     // Find the last Monday Final settlement
     const lastMondayFinal = entries
       .filter(entry => entry.tnsType === 'Monday Settlement')
       .sort((a, b) => new Date(b.date) - new Date(a.date))[0];
+
+    console.log('📊 Last Monday Final found:', lastMondayFinal ? 'Yes' : 'No');
 
     // Get entries to show in the ledger
     let ledgerEntries = [];
@@ -268,9 +275,11 @@ const getPartyLedger = async (req, res) => {
         entry._id.toString() === lastMondayFinal._id.toString() ||
         new Date(entry.date) > new Date(lastMondayFinal.date)
       );
+      console.log('📊 Ledger entries (with Monday Final):', ledgerEntries.length);
     } else {
       // If no Monday Final exists, show all entries
       ledgerEntries = entries;
+      console.log('📊 Ledger entries (all):', ledgerEntries.length);
     }
 
     // Calculate running balance for visible entries
@@ -316,6 +325,12 @@ const getPartyLedger = async (req, res) => {
         }
       }
       return entry;
+    });
+
+    console.log('📊 Final response data:', {
+      ledgerEntriesCount: fixedProcessedEntries.length,
+      oldRecordsCount: fixedOldRecords.length,
+      mondaySettlementsInResponse: fixedProcessedEntries.filter(e => e.tnsType === 'Monday Settlement').length
     });
 
     res.json({
