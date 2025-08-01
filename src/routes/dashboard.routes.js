@@ -35,4 +35,19 @@ router.get('/stats', authenticateToken, (req, res) => {
   dashboardController.getDashboardStats(req, res);
 });
 
+/**
+ * GET /api/dashboard/recent-activity
+ * 
+ * Retrieves recent activity for the current user including:
+ * - Recent transactions
+ * - Recent party creations
+ * - Recent settlements
+ * 
+ * @requires Authentication
+ * @returns {Object} Recent activity data
+ */
+router.get('/recent-activity', authenticateToken, (req, res) => {
+  dashboardController.getRecentActivity(req, res);
+});
+
 module.exports = router; 

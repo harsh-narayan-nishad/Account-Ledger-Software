@@ -10,6 +10,7 @@
  * - Total balance calculation
  * - Settlement statistics
  * - Performance metrics
+ * - Recent activity tracking
  * 
  * @author Account Ledger Team
  * @version 1.0.0
@@ -208,6 +209,119 @@ const getDashboardStats = async (req, res) => {
   }
 };
 
+/**
+ * Get Recent Activity
+ * 
+ * Retrieves recent activity for the current user including:
+ * - Recent transactions
+ * - Recent party creations
+ * - Recent settlements
+ * 
+ * @param {Object} req - Express request object
+ * @param {Object} res - Express response object
+ */
+const getRecentActivity = async (req, res) => {
+  try {
+    const userId = req.user.id;
+    
+    // Get user's parties
+    const userParties = await NewParty.find({ userId: userId }).select('_id partyName');
+    const partyIds = userParties.map(party => party._id);
+    const partyMap = new Map(userParties.map(party => [party._id.toString(), party.partyName]));
+    
+    // Get recent transactions (last 7 days)
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    
+    const recentTransactions = await LedgerEntry.find({
+      partyId: { $in: partyIds },
+      date: { $gte: sevenDaysAgo },
+      tnsType: { $ne: 'Monday Settlement' }
+    })
+    .sort({ date: -1 })
+    .limit(5)
+    .lean();
+    
+    // Get recent settlements
+    const recentSettlements = await LedgerEntry.find({
+      partyId: { $in: partyIds },
+      tnsType: 'Monday Settlement',
+      date: { $gte: sevenDaysAgo }
+    })
+    .sort({ date: -1 })
+    .limit(3)
+    .lean();
+    
+    // Get recent party creations
+    const recentParties = await NewParty.find({
+      userId: userId,
+      createdAt: { $gte: sevenDaysAgo }
+    })
+    .sort({ createdAt: -1 })
+    .limit(3)
+    .lean();
+    
+    // Combine and format activities
+    const activities = [];
+    
+    // Add transactions
+    recentTransactions.forEach(transaction => {
+      const partyName = partyMap.get(transaction.partyId.toString()) || 'Unknown Party';
+      const amount = transaction.tnsType === 'CR' ? transaction.absoluteAmount : -transaction.absoluteAmount;
+      const sign = amount >= 0 ? '+' : '';
+      
+      activities.push({
+        type: 'transaction',
+        title: `New transaction added to ${partyName}`,
+        amount: `${sign}₹${Math.abs(amount).toLocaleString()}`,
+        time: transaction.date,
+        color: 'green'
+      });
+    });
+    
+    // Add settlements
+    recentSettlements.forEach(settlement => {
+      const partyName = partyMap.get(settlement.partyId.toString()) || 'Unknown Party';
+      
+      activities.push({
+        type: 'settlement',
+        title: `Monday Final settlement completed for ${partyName}`,
+        amount: 'Settled',
+        time: settlement.date,
+        color: 'blue'
+      });
+    });
+    
+    // Add party creations
+    recentParties.forEach(party => {
+      activities.push({
+        type: 'party',
+        title: `New party "${party.partyName}" created`,
+        amount: 'New',
+        time: party.createdAt,
+        color: 'purple'
+      });
+    });
+    
+    // Sort by time (most recent first) and limit to 5
+    activities.sort((a, b) => new Date(b.time) - new Date(a.time));
+    const recentActivity = activities.slice(0, 5);
+    
+    res.json({
+      success: true,
+      message: 'Recent activity retrieved successfully',
+      data: recentActivity
+    });
+  } catch (error) {
+    console.error('Recent activity error:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve recent activity'
+    });
+  }
+};
+
 module.exports = {
-  getDashboardStats
+  getDashboardStats,
+  getRecentActivity
 }; 
