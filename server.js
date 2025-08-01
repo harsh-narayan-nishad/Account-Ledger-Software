@@ -38,6 +38,14 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 /**
+ * Trust Proxy Configuration
+ * 
+ * Configure Express to trust the proxy headers from Render.
+ * This is required for proper rate limiting behind a proxy.
+ */
+app.set('trust proxy', 1);
+
+/**
  * Mongoose Configuration
  * 
  * Configure mongoose settings to prevent deprecation warnings
@@ -184,7 +192,7 @@ app.use(compression({
  * Limits the number of requests per IP address to prevent abuse.
  * Configurable through environment variables:
  * - RATE_LIMIT_WINDOW_MS: Time window in milliseconds (default: 15 minutes)
- * - RATE_LIMIT_MAX_REQUESTS: Max requests per window (default: 100)
+ * - RATE_LIMIT_MAX_REQUESTS: Max requests per window (default: 200)
  */
 const limiter = rateLimit({
   windowMs: parseInt(process.env.RATE_LIMIT_WINDOW_MS) || 15 * 60 * 1000, // 15 minutes
@@ -192,7 +200,12 @@ const limiter = rateLimit({
   message: {
     success: false,
     message: 'Too many requests from this IP, please try again later.'
-  }
+  },
+  // Fix for proxy headers
+  standardHeaders: true,
+  legacyHeaders: false,
+  // Skip rate limiting for health checks
+  skip: (req) => req.path === '/health'
 });
 app.use('/api/', limiter);
 
