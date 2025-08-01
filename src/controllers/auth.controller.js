@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const bcrypt = require('bcryptjs'); // Added bcrypt for password comparison
 
 // Generate JWT token
 const generateToken = (userId) => {
@@ -65,8 +66,8 @@ const login = async (req, res) => {
   try {
     const { email, password } = req.body;
 
-    // Find user by email
-    const user = await User.findOne({ email }).select('+password');
+    // Optimized user query with lean() for better performance
+    const user = await User.findOne({ email, isActive: true }).select('+password').lean();
     if (!user) {
       return res.status(401).json({
         success: false,
@@ -74,16 +75,8 @@ const login = async (req, res) => {
       });
     }
 
-    // Check if user is active
-    if (!user.isActive) {
-      return res.status(401).json({
-        success: false,
-        message: 'Account is deactivated'
-      });
-    }
-
-    // Verify password
-    const isPasswordValid = await user.comparePassword(password);
+    // Verify password with optimized comparison
+    const isPasswordValid = await bcrypt.compare(password, user.password);
     if (!isPasswordValid) {
       return res.status(401).json({
         success: false,
@@ -91,9 +84,11 @@ const login = async (req, res) => {
       });
     }
 
-    // Update last login
-    user.lastLogin = new Date();
-    await user.save();
+    // Update last login without saving the entire document
+    await User.updateOne(
+      { _id: user._id },
+      { lastLogin: new Date() }
+    );
 
     // Generate token
     const token = generateToken(user._id);

@@ -5,11 +5,12 @@
  * Handles database connection, error handling, and connection events.
  * 
  * Features:
- * - MongoDB connection setup
+ * - MongoDB connection setup with optimized settings
  * - Connection event handling
  * - Error logging and monitoring
  * - Connection retry logic
  * - Environment-based configuration
+ * - Performance optimization
  * 
  * @author Account Ledger Team
  * @version 1.0.0
@@ -24,7 +25,21 @@ const connectDB = async () => {
     
     const conn = await mongoose.connect(mongoUri, {
       useNewUrlParser: true,
-      useUnifiedTopology: true
+      useUnifiedTopology: true,
+      // Optimized connection settings for better performance
+      maxPoolSize: 10, // Maximum number of connections in the pool
+      minPoolSize: 2,  // Minimum number of connections in the pool
+      serverSelectionTimeoutMS: 5000, // Timeout for server selection
+      socketTimeoutMS: 45000, // Socket timeout
+      bufferMaxEntries: 0, // Disable mongoose buffering
+      bufferCommands: false, // Disable mongoose buffering
+      // Connection pool settings
+      poolSize: 10,
+      // Write concern for better performance
+      w: 1,
+      j: false,
+      // Read preference for better performance
+      readPreference: 'primaryPreferred'
     });
 
     console.log(`MongoDB Connected: ${conn.connection.host}`);
