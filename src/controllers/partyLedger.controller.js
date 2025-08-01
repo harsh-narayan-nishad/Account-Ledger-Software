@@ -691,10 +691,20 @@ const updateMondayFinal = async (req, res) => {
         entriesToSettle: entriesToSettle.length
       });
 
+      // Create settlement entry with actual settlement amount
+      let settlementRemarks = '';
+      if (summary.calculatedBalance === 0) {
+        settlementRemarks = `Monday Final ${date} - ${entriesToSettle.length} entries settled - Balance ₹0`;
+      } else if (isCredit) {
+        settlementRemarks = `Monday Final ${date} - ${entriesToSettle.length} entries settled - ₹${settlementAmount}`;
+      } else {
+        settlementRemarks = `Monday Final ${date} - ${entriesToSettle.length} entries settled - ₹${settlementAmount}`;
+      }
+
       const settlementEntry = new LedgerEntry({
         partyName,
         date,
-        remarks: `Monday Final ${date} - ${entriesToSettle.length} entries settled - ${isCredit ? 'To Pay' : 'To Receive'} ₹${settlementAmount}`,
+        remarks: settlementRemarks,
         tnsType: 'Monday Settlement',
         credit: isCredit ? settlementAmount : 0, // Credit if we need to pay them
         debit: isDebit ? settlementAmount : 0,  // Debit if we need to receive from them
