@@ -716,6 +716,14 @@ const updateMondayFinal = async (req, res) => {
 
       await settlementEntry.save();
 
+      console.log('✅ Monday Final settlement entry created:', {
+        partyName,
+        remarks: settlementEntry.remarks,
+        credit: settlementEntry.credit,
+        debit: settlementEntry.debit,
+        balance: settlementEntry.balance
+      });
+
       results.push({
         partyName,
         success: true,
