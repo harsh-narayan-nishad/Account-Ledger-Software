@@ -333,6 +333,23 @@ const getPartyLedger = async (req, res) => {
       mondaySettlementsInResponse: fixedProcessedEntries.filter(e => e.tnsType === 'Monday Settlement').length
     });
 
+    // Debug: Log all entries to see what's happening
+    console.log('🔍 All entries in database:', entries.map(e => ({
+      date: e.date,
+      tnsType: e.tnsType,
+      remarks: e.remarks,
+      credit: e.credit,
+      debit: e.debit
+    })));
+
+    console.log('🔍 Ledger entries being sent:', fixedProcessedEntries.map(e => ({
+      date: e.date,
+      tnsType: e.tnsType,
+      remarks: e.remarks,
+      credit: e.credit,
+      debit: e.debit
+    })));
+
     res.json({
       success: true,
       message: 'Ledger retrieved successfully',
