@@ -32,6 +32,7 @@ const newPartyRoutes = require('./src/routes/newParty.routes');
 const partyLedgerRoutes = require('./src/routes/partyLedger.routes');
 const finalTrialBalanceRoutes = require('./src/routes/FinalTrialBalance.routes');
 const userSettingsRoutes = require('./src/routes/userSettings.routes');
+const dashboardRoutes = require('./src/routes/dashboard.routes');
 
 // Initialize Express application
 const app = express();
@@ -270,12 +271,14 @@ app.get('/health', (req, res) => {
  * - /api/party-ledger: Ledger entries and transactions
  * - /api/final-trial-balance: Trial balance reports
  * - /api/settings: User settings and preferences
+ * - /api/dashboard: Dashboard statistics and analytics
  */
 app.use('/api/authentication', authRoutes);
 app.use('/api/new-party', newPartyRoutes);
 app.use('/api/party-ledger', partyLedgerRoutes);
 app.use('/api/final-trial-balance', finalTrialBalanceRoutes);
 app.use('/api/settings', userSettingsRoutes);
+app.use('/api/dashboard', dashboardRoutes);
 
 /**
  * 404 Error Handler
