@@ -15,8 +15,8 @@
 
 const express = require('express');
 const router = express.Router();
-const { getDashboardStats } = require('../controllers/dashboard.controller');
-const auth = require('../middlewares/auth');
+const dashboardController = require('../controllers/dashboard.controller');
+const { authenticateToken } = require('../middlewares/auth');
 
 /**
  * GET /api/dashboard/stats
@@ -31,6 +31,8 @@ const auth = require('../middlewares/auth');
  * @requires Authentication
  * @returns {Object} Dashboard statistics
  */
-router.get('/stats', auth, getDashboardStats);
+router.get('/stats', authenticateToken, (req, res) => {
+  dashboardController.getDashboardStats(req, res);
+});
 
 module.exports = router; 
