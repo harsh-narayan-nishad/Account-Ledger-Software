@@ -37,6 +37,29 @@ const app = express();
 const PORT = process.env.PORT || 5000;
 
 /**
+ * Performance Monitoring Middleware
+ * 
+ * Logs request processing time for performance analysis.
+ * Only logs in development or for specific endpoints.
+ */
+const performanceMonitor = (req, res, next) => {
+  const start = Date.now();
+  
+  res.on('finish', () => {
+    const duration = Date.now() - start;
+    const isLoginEndpoint = req.path.includes('/login');
+    const isHealthEndpoint = req.path === '/health';
+    
+    // Log performance for login and health endpoints
+    if (isLoginEndpoint || isHealthEndpoint) {
+      console.log(`${req.method} ${req.path} - ${res.statusCode} - ${duration}ms`);
+    }
+  });
+  
+  next();
+};
+
+/**
  * Database Connection
  * 
  * Establishes connection to MongoDB database using Mongoose.
@@ -118,6 +141,13 @@ app.use((req, res, next) => {
   
   next();
 });
+
+/**
+ * Performance Monitoring
+ * 
+ * Add performance monitoring before other middleware
+ */
+app.use(performanceMonitor);
 
 /**
  * Compression Middleware Configuration
@@ -280,18 +310,12 @@ app.use((err, req, res, next) => {
  * Server Startup
  * 
  * Starts the Express server on the specified port.
- * Logs server information including port, environment, and health check URL.
- * Optimized for Render free tier with faster startup.
+ * Logs server startup information and handles startup errors.
  */
 app.listen(PORT, () => {
   console.log(`🚀 Server running on port ${PORT}`);
-  console.log(`🌍 Environment: ${process.env.NODE_ENV}`);
-  console.log(`❤️ Health check: http://localhost:${PORT}/health`);
-  console.log(`⏱️ Startup time: ${process.uptime()}s`);
-  
-  // Log memory usage for monitoring
-  const memUsage = process.memoryUsage();
-  console.log(`💾 Memory usage: ${Math.round(memUsage.heapUsed / 1024 / 1024)}MB`);
+  console.log(`📊 Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`🔗 Health check: http://localhost:${PORT}/health`);
 });
 
 module.exports = app; 
